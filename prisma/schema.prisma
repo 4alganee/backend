@@ -1,0 +1,94 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  name      String   @map("name")
+  usertag   String   @map("usertag") @default("신규 유저")
+  image     String?  @map("image") @default("https://storage.googleapis.com/ja2023/KakaoTalk_Photo_2023-08-19-21-05-01.png")
+
+  review    RecipeReview[]
+
+  @@map("user")
+}
+
+model Food {
+  id        Int   @id @default(autoincrement())
+  name      String   @map("name")
+  image     String?  @map("image")
+
+  recipe   Recipe[]
+
+  @@map("food")
+}
+
+model Recipe {
+  id            Int      @id @default(autoincrement())
+  name          String   @map("name")
+  content       String?  @map("content")
+  foodId        Int      @map("food_id")
+  author        String   @map("author")
+  likes         Int      @map("likes") @default(0)
+  isPublic      Boolean  @map("is_public") @default(false)
+  estimatedTime String   @map("estimated_time")
+  image         String?  @map("image")
+  price         String   @map("price") @default("10000")
+
+  food    Food     @relation(fields: [foodId], references: [id])
+  options RecipeOption[]
+  reviews RecipeReview[]
+  tags    RecipeTagRelation[]
+
+  @@map("recipe")
+}
+
+model RecipeOption {
+  id        Int      @id @default(autoincrement())
+  title     String   @map("title")
+  recipeId  Int      @map("recipe_id")
+
+  recipe    Recipe   @relation(fields: [recipeId], references: [id])
+
+  @@map("recipe_option")
+}
+
+model RecipeReview {
+  id        Int      @id @default(autoincrement())
+  content   String   @map("content")
+  star      Int      @map("star")
+  recipeId  Int      @map("recipe_id")
+  userId    String   @map("user_id")
+  image     String?  @map("image")
+  createdAt DateTime @map("created_at") @default(now())
+
+  recipe    Recipe   @relation(fields: [recipeId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@map("recipe_review")
+}
+
+model RecipeTag {
+  id        Int      @id @default(autoincrement())
+  name      String   @map("name")
+
+  recipeTagRelation  RecipeTagRelation[]
+
+  @@map("recipe_tag")
+}
+
+model RecipeTagRelation {
+  id        Int      @id @default(autoincrement())
+  recipeId  Int      @map("recipe_id")
+  tagId     Int      @map("tag_id")
+
+  recipe    Recipe   @relation(fields: [recipeId], references: [id])
+  recipeTag       RecipeTag @relation(fields: [tagId], references: [id])
+
+  @@map("recipe_tag_relation")
+}
